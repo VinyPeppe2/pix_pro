@@ -1,0 +1,2221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>📲💰PIX Peppe - Pro</title>
+
+  <!-- CDN Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+    :root{
+      --bg1: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      --surface: rgba(255,255,255,0.98);
+      --txt: #2d3748;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --success:#10b981; --error:#ef4444; --info:#3b82f6; --warning:#f59e0b;
+      --radius:12px;
+      --shadow:0 10px 30px rgba(0,0,0,0.08);
+    }
+    [data-theme="dark"]{ 
+      --surface: rgba(30,30,40,0.95); 
+      --txt:#f3f4f6; 
+      --muted:#cbd5e1; 
+      --border:#374151; 
+      --bg1: linear-gradient(135deg,#0f172a,#1e293b); 
+    }
+    html,body{
+      height:100%; 
+      font-family:Inter,system-ui,Segoe UI,Roboto,Arial; 
+      background:var(--bg1); 
+      color:var(--txt); 
+      -webkit-font-smoothing:antialiased;
+    }
+    .container{max-width:1200px;margin:24px auto;padding:24px;}
+    .card{
+      background:var(--surface); 
+      border-radius:var(--radius); 
+      padding:18px; 
+      box-shadow:var(--shadow); 
+      border:1px solid rgba(0,0,0,0.04); 
+      margin-bottom:18px;
+    }
+    h1{font-size:1.6rem;margin-bottom:6px}
+    h3{font-size:1.2rem;margin-bottom:12px}
+    h4{font-size:1rem;margin-bottom:8px}
+    .sub{color:var(--muted); margin-bottom:12px; font-size:0.95rem}
+    .tabs{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap}
+    .tab{
+      padding:8px 12px;
+      border-radius:10px;
+      background:transparent;
+      color:var(--muted);
+      cursor:pointer;
+      font-weight:600;
+      transition:all 0.2s;
+    }
+    .tab:hover{background:rgba(0,0,0,0.03)}
+    .tab.active{background:var(--surface); color:var(--txt); box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+    .controls{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+    .btn{
+      padding:10px 14px;
+      border-radius:10px;
+      border:none;
+      cursor:pointer;
+      font-weight:700;
+      transition:all 0.2s;
+      font-size:0.95rem;
+    }
+    .btn:hover{transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+    .btn:active{transform:translateY(0)}
+    .btn:disabled{opacity:0.5; cursor:not-allowed; transform:none}
+    .btn-primary{background:#6b5ce7;color:#fff}
+    .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--txt)}
+    .btn-success{background:var(--success);color:#fff}
+    .btn-warning{background:var(--warning);color:#fff}
+    .btn-small{padding:6px 10px;font-size:0.85rem}
+    .two-col{display:grid; grid-template-columns:1fr 420px; gap:18px; align-items:start}
+    @media (max-width:1000px){ 
+      .two-col{grid-template-columns:1fr}
+      .qr-section{margin-top:20px}
+    }
+    label{display:block;font-weight:700;margin-bottom:6px; font-size:0.95rem}
+    input.form, select.form, textarea.form{
+      width:100%;
+      padding:10px;
+      border-radius:8px;
+      border:1px solid var(--border); 
+      background:var(--surface); 
+      color:var(--txt);
+      font-size:1rem;
+      transition:border 0.2s;
+    }
+    input.form:focus, select.form:focus, textarea.form:focus{
+      outline:none;
+      border-color:#6b5ce7;
+    }
+    textarea.form{resize:vertical; min-height:60px}
+    .qr-box{
+      text-align:center;
+      padding:14px;
+      border-radius:12px;
+      background:rgba(0,0,0,0.02);
+      border:1px solid var(--border);
+      min-height:340px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+    }
+    .qr-canvas{display:inline-block;padding:10px;background:#fff;border-radius:8px}
+    .qr-placeholder{color:var(--muted); font-size:0.9rem; text-align:center}
+    .info-grid{display:grid; gap:8px}
+    .status{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      font-weight:800;
+      border:1px solid rgba(0,0,0,0.06);
+      font-size:0.85rem;
+    }
+    .status-success{background:rgba(16,185,129,0.08);color:#065f46;border-color:rgba(16,185,129,0.15)}
+    .status-warn{background:rgba(245,158,11,0.08);color:#92400e;border-color:rgba(245,158,11,0.12)}
+    .status-danger{background:rgba(239,68,68,0.08);color:#991b1b;border-color:rgba(239,68,68,0.15)}
+    .table-wrap{overflow:auto; max-height:420px; border-radius:8px; border:1px solid var(--border)}
+    table.data{width:100%; border-collapse:collapse}
+    table.data th, table.data td{
+      padding:10px;
+      border-bottom:1px solid var(--border); 
+      text-align:left; 
+      font-size:0.95rem;
+      background:var(--surface)
+    }
+    table.data thead th{position:sticky; top:0; background:var(--surface); font-weight:700; z-index:10}
+    .muted{color:var(--muted)}
+    .toast{
+      position:fixed; 
+      right:20px; 
+      top:20px; 
+      padding:12px 16px;
+      border-radius:8px;
+      color:#fff; 
+      z-index:9999;
+      box-shadow:0 4px 20px rgba(0,0,0,0.2);
+      animation:slideIn 0.3s;
+    }
+    @keyframes slideIn{
+      from{transform:translateX(100px); opacity:0}
+      to{transform:translateX(0); opacity:1}
+    }
+    .toast.info{background:var(--info)} 
+    .toast.success{background:var(--success)} 
+    .toast.error{background:var(--error)} 
+    .toast.warn{background:#f59e0b}
+    .pagination{display:flex; gap:6px; align-items:center}
+    .page-btn{
+      padding:6px 10px;
+      border-radius:8px;
+      border:1px solid var(--border);
+      background:transparent;
+      cursor:pointer;
+      font-size:0.9rem;
+    }
+    .page-btn:hover{background:rgba(0,0,0,0.03)}
+    .small{font-size:0.85rem}
+    .form-error{color:var(--error); font-size:0.85rem; margin-top:6px; display:none}
+    .input-group{margin-bottom:14px}
+    .btn-icon{padding:8px 12px}
+    details{cursor:pointer}
+    summary{user-select:none; font-weight:700}
+    .modal-overlay{
+      display:none;
+      position:fixed;
+      top:0;
+      left:0;
+      right:0;
+      bottom:0;
+      background:rgba(0,0,0,0.5);
+      z-index:1999;
+    }
+    .modal-overlay.show{display:block}
+    .modal{
+      display:none;
+      position:fixed;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%);
+      z-index:2000;
+      max-width:600px;
+      width:90%;
+      max-height:90vh;
+      overflow-y:auto;
+    }
+    .stats-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+      gap:12px;
+      margin-bottom:20px;
+    }
+    .stat-card{
+      padding:16px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,0.01);
+    }
+    .stat-value{font-size:1.8rem; font-weight:800; margin:4px 0}
+    .stat-label{font-size:0.85rem; color:var(--muted)}
+    .overdue{color:var(--error); font-weight:700}
+    .share-box{
+      background:rgba(0,0,0,0.02);
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:12px;
+      margin-top:12px;
+      display:none;
+    }
+    .share-link{
+      background:var(--surface);
+      border:1px solid var(--border);
+      padding:8px;
+      border-radius:6px;
+      font-family:monospace;
+      font-size:0.85rem;
+      word-break:break-all;
+      margin:8px 0;
+    }
+    .client-badge{
+      display:inline-block;
+      padding:4px 8px;
+      border-radius:6px;
+      background:rgba(107,92,231,0.1);
+      color:#6b5ce7;
+      font-size:0.85rem;
+      font-weight:600;
+    }
+    .profile-selector{
+      padding:8px;
+      border-radius:8px;
+      background:rgba(0,0,0,0.02);
+      border:1px solid var(--border);
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .profile-option{
+      padding:6px 12px;
+      border-radius:6px;
+      background:transparent;
+      border:1px solid var(--border);
+      cursor:pointer;
+      font-size:0.9rem;
+      transition:all 0.2s;
+    }
+    .profile-option:hover{background:rgba(0,0,0,0.03)}
+    .profile-option.active{background:#6b5ce7; color:#fff; border-color:#6b5ce7}
+  </style>
+</head>
+<body data-theme="light">
+  <div class="container">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap">
+        <div>
+          <h1>📲💰PIX Peppe - Pro</h1>
+          <div class="sub">Gestão completa de cobranças PIX com clientes e relatórios</div>
+          <div class="tabs">
+            <div class="tab active" id="tab-gen">Gerar Cobrança</div>
+            <div class="tab" id="tab-hist">Histórico</div>
+            <div class="tab" id="tab-clients">Clientes</div>
+            <div class="tab" id="tab-reports">Relatórios</div>
+          </div>
+        </div>
+        <div class="controls">
+          <button class="btn btn-ghost btn-icon" id="btn-receiver-config" title="Configurar Recebedor">⚙️</button>
+          <button class="btn btn-ghost btn-icon" id="btn-backup" title="Backup Automático">💾</button>
+          <button class="btn btn-ghost btn-icon" id="btn-export-import" title="Exportar/Importar">📥</button>
+          <button class="btn btn-ghost btn-icon" id="btn-theme" title="Alternar Tema">🌙</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generate View -->
+    <div id="view-gen" class="card">
+      <div class="two-col">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">
+            <h3>Nova Cobrança</h3>
+            <div id="receiver-status" class="status status-warn">Não configurado</div>
+          </div>
+
+          <!-- Profile Selector -->
+          <div id="profile-selector" class="profile-selector" style="display:none; margin-bottom:16px">
+            <span class="small muted">Recebedor:</span>
+          </div>
+
+          <div class="input-group">
+            <label for="client-select">Cliente (opcional)</label>
+            <select id="client-select" class="form">
+              <option value="">Sem cliente</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="amount">Valor <span class="muted small">(deixe vazio para QR dinâmico)</span></label>
+            <input id="amount" class="form" type="text" placeholder="R$ 0,00" />
+            <div id="amount-error" class="form-error"></div>
+          </div>
+
+          <div class="input-group">
+            <label for="description">Descrição</label>
+            <input id="description" class="form" maxlength="72" placeholder="Ex: Venda produto XYZ" />
+          </div>
+
+          <div class="input-group">
+            <label for="due-date">Vencimento (opcional)</label>
+            <input id="due-date" class="form" type="date" />
+          </div>
+
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:16px">
+            <button class="btn btn-primary" id="btn-generate">✨ Gerar QR Code</button>
+            <button class="btn btn-ghost" id="btn-clear">🗑️ Limpar</button>
+          </div>
+        </div>
+
+        <div class="qr-section">
+          <h3>QR Code PIX</h3>
+          
+          <div class="qr-box">
+            <div id="qr-canvas" class="qr-canvas"></div>
+            <div id="qr-placeholder" class="qr-placeholder">
+              <div style="font-size:3rem; margin-bottom:10px">📱</div>
+              <div>Preencha os dados e clique em<br><strong>"Gerar QR Code"</strong></div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap">
+            <button class="btn btn-success btn-small" id="btn-download" disabled>💾 Baixar PNG</button>
+            <button class="btn btn-ghost btn-small" id="btn-copy" disabled>📋 Copiar Código</button>
+            <button class="btn btn-ghost btn-small" id="btn-share" disabled>🔗 Compartilhar</button>
+          </div>
+
+          <div id="share-box" class="share-box">
+            <div class="small muted" style="margin-bottom:8px">Link para compartilhar:</div>
+            <div class="share-link" id="share-link">-</div>
+            <button class="btn btn-ghost btn-small" id="btn-copy-link" style="width:100%; margin-top:8px">📋 Copiar Link</button>
+          </div>
+
+          <div style="margin-top:12px; padding:12px; border-radius:8px; border:1px solid var(--border); background:rgba(0,0,0,0.01)">
+            <div class="small" style="display:grid; gap:6px">
+              <div><strong>ID:</strong> <span id="current-id">-</span></div>
+              <div><strong>Valor:</strong> <span id="current-amount">R$ 0,00</span></div>
+              <div><strong>Vencimento:</strong> <span id="current-due" class="muted">-</span></div>
+              <div><strong>Status:</strong> <span id="current-status" class="status status-warn">Aguardando</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History View -->
+    <div id="view-hist" class="card" style="display:none">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:16px">
+        <h3>Histórico de Cobranças</h3>
+        <div class="muted small" id="hist-stats">0 registros</div>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap">
+        <input id="filter-search" class="form" placeholder="🔍 Buscar..." style="flex:1; min-width:200px"/>
+        <select id="filter-status" class="form" style="width:140px">
+          <option value="all">Todos</option>
+          <option value="pending">Pendentes</option>
+          <option value="received">Recebidos</option>
+          <option value="overdue">Vencidos</option>
+        </select>
+        <select id="filter-client" class="form" style="width:160px">
+          <option value="all">Todos clientes</option>
+        </select>
+        <button class="btn btn-ghost btn-small" id="btn-reset-filter">Limpar</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cliente</th>
+              <th>Valor</th>
+              <th>Vencimento</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <tr><td colspan="6" style="text-align:center;padding:40px" class="muted">Nenhuma cobrança registrada</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; flex-wrap:wrap; gap:10px">
+        <div class="pagination">
+          <button class="page-btn" id="prev-page">← Anterior</button>
+          <div id="page-info" class="small muted">Página 1</div>
+          <button class="page-btn" id="next-page">Próxima →</button>
+        </div>
+        <div style="display:flex; gap:8px">
+          <button class="btn btn-ghost btn-small" id="btn-export-pdf">📄 Exportar PDF</button>
+          <button class="btn btn-ghost btn-small" id="btn-clear-history">🗑️ Limpar Tudo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clients View -->
+    <div id="view-clients" class="card" style="display:none">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">
+        <h3>Gestão de Clientes</h3>
+        <button class="btn btn-primary btn-small" id="btn-add-client">+ Novo Cliente</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Contato</th>
+              <th>Cobranças</th>
+              <th>Total</th>
+              <th>Em Aberto</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="clients-body">
+            <tr><td colspan="6" style="text-align:center;padding:40px" class="muted">Nenhum cliente cadastrado</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Reports View -->
+    <div id="view-reports" class="card" style="display:none">
+      <h3>Relatórios e Estatísticas</h3>
+      <div class="sub">Análise do período selecionado</div>
+
+      <div style="display:flex; gap:8px; margin:16px 0; flex-wrap:wrap">
+        <select id="report-period" class="form" style="width:160px">
+          <option value="today">Hoje</option>
+          <option value="week">Esta Semana</option>
+          <option value="month" selected>Este Mês</option>
+          <option value="all">Todo Período</option>
+        </select>
+        <button class="btn btn-primary btn-small" id="btn-refresh-reports">🔄 Atualizar</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Recebido</div>
+          <div class="stat-value" id="stat-received" style="color:var(--success)">R$ 0,00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Pendente</div>
+          <div class="stat-value" id="stat-pending" style="color:var(--warning)">R$ 0,00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Vencido</div>
+          <div class="stat-value" id="stat-overdue" style="color:var(--error)">R$ 0,00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Ticket Médio</div>
+          <div class="stat-value" id="stat-avg">R$ 0,00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total de Cobranças</div>
+          <div class="stat-value" id="stat-count">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Taxa de Conversão</div>
+          <div class="stat-value" id="stat-conversion">0%</div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px; padding:16px; border-radius:10px; border:1px solid var(--border); background:rgba(0,0,0,0.01)">
+        <h4>Top 5 Clientes</h4>
+        <div id="top-clients" class="small" style="margin-top:12px">
+          <div class="muted">Carregando...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Config Panel -->
+    <div id="config-panel" class="card" style="display:none; margin-top:14px; border:2px solid #6b5ce7">
+      <h3>⚙️ Configuração de Recebedores</h3>
+      <div class="sub">Gerencie múltiplos perfis de recebedor</div>
+      
+      <div style="margin-bottom:16px">
+        <label>Perfis Salvos</label>
+        <div id="saved-profiles" class="profile-selector">
+          <span class="small muted">Nenhum perfil salvo</span>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 2fr; gap:10px; margin-top:16px">
+        <div>
+          <label for="cfg-key-type">Tipo de Chave</label>
+          <select id="cfg-key-type" class="form"></select>
+          <div id="cfg-pix-key-error" class="form-error"></div>
+        </div>
+        <div>
+          <label for="cfg-pix-key">Chave PIX</label>
+          <input id="cfg-pix-key" class="form" />
+        </div>
+      </div>
+      
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px">
+        <div>
+          <label for="cfg-name">Nome (máx 25 caracteres)</label>
+          <input id="cfg-name" class="form" maxlength="25" placeholder="Nome que aparece no comprovante" />
+          <div id="cfg-name-error" class="form-error"></div>
+        </div>
+        <div>
+          <label for="cfg-city">Cidade (máx 15 caracteres)</label>
+          <input id="cfg-city" class="form" maxlength="15" placeholder="Ex: Sao Paulo" />
+          <div id="cfg-city-error" class="form-error"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap">
+        <button class="btn btn-success" id="btn-save-config">✓ Salvar Perfil</button>
+        <button class="btn btn-ghost" id="btn-cancel-config">✕ Cancelar</button>
+        <button class="btn btn-warning btn-small" id="btn-delete-profile" style="margin-left:auto">🗑️ Excluir Perfil Atual</button>
+      </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="modal-overlay"></div>
+
+    <!-- Client Modal -->
+    <div id="modal-client" class="modal card">
+      <h3 id="client-modal-title">Novo Cliente</h3>
+      <div class="input-group" style="margin-top:16px">
+        <label for="client-name">Nome do Cliente</label>
+        <input id="client-name" class="form" placeholder="Nome completo" />
+      </div>
+      <div class="input-group">
+        <label for="client-contact">Contato (telefone ou email)</label>
+        <input id="client-contact" class="form" placeholder="+55 11 99999-9999 ou email@exemplo.com" />
+      </div>
+      <div class="input-group">
+        <label for="client-notes">Observações (opcional)</label>
+        <textarea id="client-notes" class="form" placeholder="Notas sobre o cliente"></textarea>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:16px">
+        <button class="btn btn-success" id="btn-save-client">Salvar</button>
+        <button class="btn btn-ghost" id="btn-cancel-client">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- Payment Proof Modal -->
+    <div id="modal-proof" class="modal card">
+      <h3>Confirmar Pagamento</h3>
+      <div class="sub">Registro de comprovante - Cobrança <span id="proof-charge-id">#-</span></div>
+      
+      <div class="input-group" style="margin-top:16px">
+        <label for="proof-txid">ID da Transação (opcional)</label>
+        <input id="proof-txid" class="form" placeholder="ID do comprovante bancário" />
+      </div>
+      <div class="input-group">
+        <label for="proof-notes">Observações</label>
+        <textarea id="proof-notes" class="form" placeholder="Notas sobre o pagamento recebido"></textarea>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:16px">
+        <button class="btn btn-success" id="btn-confirm-payment">✓ Confirmar Recebimento</button>
+        <button class="btn btn-ghost" id="btn-cancel-proof">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- Export/Import Modal -->
+    <div id="modal-export-import" class="modal card">
+      <h3>📥 Gerenciar Dados</h3>
+      <div class="sub">Exporte ou importe seu histórico de cobranças</div>
+      
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px">
+        <button class="btn btn-ghost" id="exp-json">Exportar JSON</button>
+        <button class="btn btn-ghost" id="exp-xlsx">Exportar Excel</button>
+        <button class="btn btn-ghost" id="exp-pdf-modal">Exportar PDF</button>
+        <button class="btn btn-ghost" id="imp-json">Importar JSON</button>
+      </div>
+      
+      <input type="file" id="file-import" accept=".json" style="display:none" />
+      
+      <div style="margin-top:16px; padding:12px; border-radius:8px; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3)">
+        <div class="small" style="color:var(--warning)"><strong>💡 Backup Automático:</strong></div>
+        <div class="small muted" style="margin-top:4px">Último backup: <span id="last-backup">Nunca</span></div>
+        <button class="btn btn-warning btn-small" id="btn-create-backup" style="margin-top:8px; width:100%">Criar Backup Agora</button>
+      </div>
+      
+      <div style="margin-top:16px; display:flex; justify-content:flex-end">
+        <button class="btn btn-primary" id="modal-close">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DB_NAME = 'pix_manager_pro';
+    const DB_VERSION = 2;
+    const STORE_HISTORY = 'history';
+    const STORE_CONFIG = 'config';
+    const STORE_CLIENTS = 'clients';
+    const STORE_RECEIVERS = 'receivers';
+    let db = null;
+
+    function openDB(){
+      return new Promise((res, rej) => {
+        if (db) return res(db);
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const idb = e.target.result;
+          if (!idb.objectStoreNames.contains(STORE_HISTORY)) {
+            idb.createObjectStore(STORE_HISTORY, { keyPath:'id', autoIncrement:true });
+          }
+          if (!idb.objectStoreNames.contains(STORE_CONFIG)) {
+            idb.createObjectStore(STORE_CONFIG, { keyPath:'key' });
+          }
+          if (!idb.objectStoreNames.contains(STORE_CLIENTS)) {
+            idb.createObjectStore(STORE_CLIENTS, { keyPath:'id', autoIncrement:true });
+          }
+          if (!idb.objectStoreNames.contains(STORE_RECEIVERS)) {
+            idb.createObjectStore(STORE_RECEIVERS, { keyPath:'id', autoIncrement:true });
+          }
+        };
+        req.onsuccess = e => { db = e.target.result; res(db); };
+        req.onerror = e => rej(e);
+      });
+    }
+
+    function idbPut(storeName, value){
+      return openDB().then(db => new Promise((res, rej) => {
+        const tx = db.transaction(storeName, 'readwrite');
+        const st = tx.objectStore(storeName);
+        const r = st.put(value);
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      }));
+    }
+
+    function idbGetAll(storeName){ 
+      return openDB().then(db => new Promise((res, rej) => {
+        const tx = db.transaction(storeName, 'readonly'); 
+        const st = tx.objectStore(storeName);
+        const r = st.getAll(); 
+        r.onsuccess = () => res(r.result); 
+        r.onerror = () => rej(r.error);
+      })); 
+    }
+
+    function idbGet(storeName, key){ 
+      return openDB().then(db => new Promise((res, rej) => {
+        const tx = db.transaction(storeName, 'readonly'); 
+        const st = tx.objectStore(storeName);
+        const r = st.get(key); 
+        r.onsuccess = () => res(r.result); 
+        r.onerror = () => rej(r.error);
+      })); 
+    }
+
+    function idbDelete(storeName, key){ 
+      return openDB().then(db => new Promise((res, rej) => {
+        const tx = db.transaction(storeName, 'readwrite'); 
+        const st = tx.objectStore(storeName);
+        const r = st.delete(key); 
+        r.onsuccess = () => res(); 
+        r.onerror = () => rej(r.error);
+      })); 
+    }
+
+    function idbClear(storeName){ 
+      return openDB().then(db => new Promise((res, rej) => {
+        const tx = db.transaction(storeName, 'readwrite'); 
+        const st = tx.objectStore(storeName);
+        const r = st.clear(); 
+        r.onsuccess = () => res(); 
+        r.onerror = () => rej(r.error);
+      })); 
+    }
+
+    function genTXID(){ return Math.random().toString(36).substring(2,12).toUpperCase(); }
+    function formatBRL(v){ const num = Number(v||0); return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(num); }
+    function escapeHTML (str) {
+      if (!str && str !== 0) return '';
+      return String(str).replace(/[&<>"'`=\/]/g, function (s) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'}[s];
+      });
+    }
+
+    function generateCRC16(payload){
+      let crc = 0xFFFF; 
+      const polynomial = 0x1021;
+      for (let i = 0; i < payload.length; i++) {
+        crc ^= (payload.charCodeAt(i) << 8);
+        for (let j = 0; j < 8; j++) {
+          if (crc & 0x8000) crc = ((crc << 1) ^ polynomial) & 0xFFFF;
+          else crc = (crc << 1) & 0xFFFF;
+        }
+      }
+      return crc.toString(16).toUpperCase().padStart(4,'0');
+    }
+
+    function formatEMVField(tag, value){
+      const len = String(value.length).padStart(2,'0');
+      return `${tag}${len}${value}`;
+    }
+
+    const KEY_TYPES = {
+      cpf: { label:'CPF', placeholder:'000.000.000-00' },
+      cnpj: { label:'CNPJ', placeholder:'00.000.000/0000-00' },
+      email: { label:'E-mail', placeholder:'seu@email.com' },
+      phone: { label:'Telefone', placeholder:'+55 11 99999-9999' },
+      random: { label:'Chave Aleatória', placeholder:'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx' }
+    };
+
+    const D = {
+      tabGen: document.getElementById('tab-gen'),
+      tabHist: document.getElementById('tab-hist'),
+      tabClients: document.getElementById('tab-clients'),
+      tabReports: document.getElementById('tab-reports'),
+      viewGen: document.getElementById('view-gen'),
+      viewHist: document.getElementById('view-hist'),
+      viewClients: document.getElementById('view-clients'),
+      viewReports: document.getElementById('view-reports'),
+      profileSelector: document.getElementById('profile-selector'),
+      clientSelect: document.getElementById('client-select'),
+      amount: document.getElementById('amount'),
+      amountError: document.getElementById('amount-error'),
+      description: document.getElementById('description'),
+      dueDate: document.getElementById('due-date'),
+      btnGenerate: document.getElementById('btn-generate'),
+      btnClear: document.getElementById('btn-clear'),
+      qrCanvas: document.getElementById('qr-canvas'),
+      qrPlaceholder: document.getElementById('qr-placeholder'),
+      btnDownload: document.getElementById('btn-download'),
+      btnCopy: document.getElementById('btn-copy'),
+      btnShare: document.getElementById('btn-share'),
+      shareBox: document.getElementById('share-box'),
+      shareLink: document.getElementById('share-link'),
+      btnCopyLink: document.getElementById('btn-copy-link'),
+      receiverStatus: document.getElementById('receiver-status'),
+      currentId: document.getElementById('current-id'),
+      currentAmount: document.getElementById('current-amount'),
+      currentDue: document.getElementById('current-due'),
+      currentStatus: document.getElementById('current-status'),
+      btnReceiverConfig: document.getElementById('btn-receiver-config'),
+      btnBackup: document.getElementById('btn-backup'),
+      configPanel: document.getElementById('config-panel'),
+      savedProfiles: document.getElementById('saved-profiles'),
+      cfgKeyType: document.getElementById('cfg-key-type'),
+      cfgPixKey: document.getElementById('cfg-pix-key'),
+      cfgPixKeyError: document.getElementById('cfg-pix-key-error'),
+      cfgName: document.getElementById('cfg-name'),
+      cfgNameError: document.getElementById('cfg-name-error'),
+      cfgCity: document.getElementById('cfg-city'),
+      cfgCityError: document.getElementById('cfg-city-error'),
+      btnSaveConfig: document.getElementById('btn-save-config'),
+      btnCancelConfig: document.getElementById('btn-cancel-config'),
+      btnDeleteProfile: document.getElementById('btn-delete-profile'),
+      filterSearch: document.getElementById('filter-search'),
+      filterStatus: document.getElementById('filter-status'),
+      filterClient: document.getElementById('filter-client'),
+      btnResetFilter: document.getElementById('btn-reset-filter'),
+      historyBody: document.getElementById('history-body'),
+      histStats: document.getElementById('hist-stats'),
+      btnClearHistory: document.getElementById('btn-clear-history'),
+      btnAddClient: document.getElementById('btn-add-client'),
+      clientsBody: document.getElementById('clients-body'),
+      reportPeriod: document.getElementById('report-period'),
+      btnRefreshReports: document.getElementById('btn-refresh-reports'),
+      statReceived: document.getElementById('stat-received'),
+      statPending: document.getElementById('stat-pending'),
+      statOverdue: document.getElementById('stat-overdue'),
+      statAvg: document.getElementById('stat-avg'),
+      statCount: document.getElementById('stat-count'),
+      statConversion: document.getElementById('stat-conversion'),
+      topClients: document.getElementById('top-clients'),
+      btnTheme: document.getElementById('btn-theme'),
+      btnExportImport: document.getElementById('btn-export-import'),
+      modalOverlay: document.getElementById('modal-overlay'),
+      modalExportImport: document.getElementById('modal-export-import'),
+      modalClient: document.getElementById('modal-client'),
+      modalProof: document.getElementById('modal-proof'),
+      clientModalTitle: document.getElementById('client-modal-title'),
+      clientName: document.getElementById('client-name'),
+      clientContact: document.getElementById('client-contact'),
+      clientNotes: document.getElementById('client-notes'),
+      btnSaveClient: document.getElementById('btn-save-client'),
+      btnCancelClient: document.getElementById('btn-cancel-client'),
+      proofChargeId: document.getElementById('proof-charge-id'),
+      proofTxid: document.getElementById('proof-txid'),
+      proofNotes: document.getElementById('proof-notes'),
+      btnConfirmPayment: document.getElementById('btn-confirm-payment'),
+      btnCancelProof: document.getElementById('btn-cancel-proof'),
+      fileImport: document.getElementById('file-import'),
+      expJson: document.getElementById('exp-json'),
+      expXlsx: document.getElementById('exp-xlsx'),
+      expPdfModal: document.getElementById('exp-pdf-modal'),
+      impJson: document.getElementById('imp-json'),
+      lastBackup: document.getElementById('last-backup'),
+      btnCreateBackup: document.getElementById('btn-create-backup'),
+      modalClose: document.getElementById('modal-close'),
+      btnExportPDFTable: document.getElementById('btn-export-pdf'),
+      prevPage: document.getElementById('prev-page'),
+      nextPage: document.getElementById('next-page'),
+      pageInfo: document.getElementById('page-info'),
+    };
+
+    let receiverConfig = null;
+    let currentReceiverId = null;
+    let allReceivers = [];
+    let lastQR = null;
+    let qrInstance = null;
+    let PAGE_SIZE = 12;
+    let CURRENT_PAGE = 1;
+    let LAST_FILTERED = [];
+    let editingClientId = null;
+    let currentProofChargeId = null;
+
+    const onlyDigits = v => (v||'').replace(/\D/g, '');
+
+    function maskCPF(v){ 
+      const d = onlyDigits(v).slice(0,11); 
+      return d.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, (m,a,b,c,d)=> `${a}.${b}.${c}${d?'-'+d:''}`); 
+    }
+    
+    function maskCNPJ(v){ 
+      const d=onlyDigits(v).slice(0,14); 
+      return d.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2})/, (m,a,b,c,d,e)=> `${a}.${b}.${c}/${d}${e?'-'+e:''}`); 
+    }
+    
+    function maskPhone(v){ 
+      let d=onlyDigits(v); 
+      if(d.startsWith('55')) d=d.slice(2); 
+      d=d.slice(0,11); 
+      if(d.length<=2) return `+55 (${d}`; 
+      if(d.length<=6) return `+55 (${d.slice(0,2)}) ${d.slice(2)}`; 
+      if(d.length<=10) return `+55 (${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`; 
+      return `+55 (${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`; 
+    }
+    
+    function maskUUID(v){ 
+      const d=(v||'').replace(/[^0-9a-fA-F]/g,'').slice(0,32); 
+      return d.replace(/(.{8})(.{4})(.{4})(.{4})(.{0,12})/, (m,a,b,c,d,e)=> `${a}${b?'-'+b:''}${c?'-'+c:''}${d?'-'+d:''}${e?'-'+e:''}`); 
+    }
+
+    function validateCPF(c){
+      c = onlyDigits(c);
+      if (c.length !== 11) return false;
+      if (/^(\d)\1+$/.test(c)) return false;
+      let sum = 0, rest;
+      for (let i = 1; i <= 9; i++) sum += parseInt(c.charAt(i-1)) * (11 - i);
+      rest = (sum * 10) % 11; 
+      if (rest === 10 || rest === 11) rest = 0;
+      if (rest !== parseInt(c.charAt(9))) return false;
+      sum = 0;
+      for (let i = 1; i <= 10; i++) sum += parseInt(c.charAt(i-1)) * (12 - i);
+      rest = (sum * 10) % 11; 
+      if (rest === 10 || rest === 11) rest = 0;
+      if (rest !== parseInt(c.charAt(10))) return false;
+      return true;
+    }
+
+    function validateCNPJ(c){
+      c = onlyDigits(c);
+      if (c.length !== 14) return false;
+      if (/^(\d)\1+$/.test(c)) return false;
+      let length = c.length - 2;
+      let numbers = c.substring(0, length);
+      let digits = c.substring(length);
+      let sum = 0;
+      let pos = length - 7;
+      for (let i = length; i >= 1; i--) {
+        sum += numbers.charAt(length - i) * pos--;
+        if (pos < 2) pos = 9;
+      }
+      let result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+      if (result != digits.charAt(0)) return false;
+      length = length + 1;
+      numbers = c.substring(0, length);
+      sum = 0;
+      pos = length - 7;
+      for (let i = length; i >= 1; i--) {
+        sum += numbers.charAt(length - i) * pos--;
+        if (pos < 2) pos = 9;
+      }
+      result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+      if (result != digits.charAt(1)) return false;
+      return true;
+    }
+
+    function validateEmail(e){
+      if (!e) return false;
+      e = e.trim();
+      if (e.length > 77) return false;
+      const re = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+      return re.test(e);
+    }
+
+    function validatePhone(v){
+      if (!v) return false;
+      let d = onlyDigits(v);
+      if (d.startsWith('55')) d = d.slice(2);
+      if (d.length === 10 || d.length === 11) {
+        const ddd = d.slice(0,2);
+        if (ddd === '00' || ddd === '01') return false;
+        return true;
+      }
+      return false;
+    }
+
+    function validateUUID(u){ 
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(u); 
+    }
+
+    function isOverdue(dueDate){
+      if (!dueDate) return false;
+      const due = new Date(dueDate);
+      const now = new Date();
+      now.setHours(0,0,0,0);
+      return due < now;
+    }
+
+    function setupAmountFormatting(){
+      const input = D.amount;
+      
+      input.addEventListener("focus", () => {
+        if (input.value === "R$ 0,00") {
+          input.value = "";
+        }
+      });
+
+      input.addEventListener("input", () => {
+        let value = input.value.replace(/\D/g, "");
+        value = (parseInt(value, 10) || 0).toString();
+        
+        let valorFinal = (value / 100).toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL"
+        });
+        
+        input.value = valorFinal;
+      });
+
+      input.addEventListener("blur", () => {
+        if (input.value.trim() === "" || input.value === "R$ NaN") {
+          input.value = "R$ 0,00";
+        }
+      });
+    }
+
+    function getAmountValue(){
+      const value = D.amount.value.replace(/\D/g, "");
+      return (parseInt(value, 10) || 0) / 100;
+    }
+
+    function showToast(msg, type='info'){
+      const t = document.createElement('div'); 
+      t.className = `toast ${type}`;
+      t.textContent = msg; 
+      document.body.appendChild(t);
+      setTimeout(()=> t.remove(), 3500);
+    }
+
+    function showFieldError(el, msg){
+      if (!el) return;
+      el.style.display = 'block';
+      el.textContent = msg;
+    }
+    
+    function hideFieldError(el){ 
+      if (!el) return; 
+      el.style.display = 'none'; 
+      el.textContent = ''; 
+    }
+
+    function setupKeySelects(){
+      [D.cfgKeyType].forEach(select => {
+        Object.keys(KEY_TYPES).forEach(k => {
+          const opt = document.createElement('option'); 
+          opt.value = k; 
+          opt.textContent = KEY_TYPES[k].label;
+          select.appendChild(opt);
+        });
+      });
+      D.cfgKeyType.value = 'cpf';
+    }
+
+    function setupInputMasks(){
+      D.cfgPixKey.addEventListener('input', () => {
+        const keyType = D.cfgKeyType.value;
+        switch(keyType){
+          case 'cpf': D.cfgPixKey.value = maskCPF(D.cfgPixKey.value); break;
+          case 'cnpj': D.cfgPixKey.value = maskCNPJ(D.cfgPixKey.value); break;
+          case 'phone': D.cfgPixKey.value = maskPhone(D.cfgPixKey.value); break;
+          case 'random': D.cfgPixKey.value = maskUUID(D.cfgPixKey.value); break;
+        }
+      });
+
+      D.cfgKeyType.addEventListener('change', () => {
+        const keyType = D.cfgKeyType.value;
+        const placeholder = KEY_TYPES[keyType]?.placeholder || '';
+        D.cfgPixKey.placeholder = placeholder;
+        D.cfgPixKey.value = '';
+      });
+    }
+
+    async function loadReceivers(){
+      try {
+        allReceivers = await idbGetAll(STORE_RECEIVERS);
+        const activeId = localStorage.getItem('active_receiver_id');
+        
+        if (allReceivers.length > 0) {
+          if (activeId) {
+            receiverConfig = allReceivers.find(r => r.id == activeId) || allReceivers[0];
+          } else {
+            receiverConfig = allReceivers[0];
+          }
+          currentReceiverId = receiverConfig.id;
+        } else {
+          receiverConfig = null;
+          currentReceiverId = null;
+        }
+        
+        updateReceiverStatus();
+        updateProfileSelector();
+        updateSavedProfiles();
+      } catch(e) {
+        console.error('loadReceivers', e);
+        receiverConfig = null;
+        updateReceiverStatus();
+      }
+    }
+
+    function updateProfileSelector(){
+      if (allReceivers.length <= 1) {
+        D.profileSelector.style.display = 'none';
+        return;
+      }
+      
+      D.profileSelector.style.display = 'flex';
+      const span = D.profileSelector.querySelector('.small');
+      D.profileSelector.innerHTML = '<span class="small muted">Recebedor:</span>';
+      
+      allReceivers.forEach(r => {
+        const btn = document.createElement('button');
+        btn.className = 'profile-option';
+        if (r.id === currentReceiverId) btn.classList.add('active');
+        btn.textContent = r.name;
+        btn.onclick = () => switchReceiver(r.id);
+        D.profileSelector.appendChild(btn);
+      });
+    }
+
+    function switchReceiver(id){
+      const receiver = allReceivers.find(r => r.id === id);
+      if (!receiver) return;
+      receiverConfig = receiver;
+      currentReceiverId = id;
+      localStorage.setItem('active_receiver_id', id);
+      updateReceiverStatus();
+      updateProfileSelector();
+      showToast(`Recebedor alterado: ${receiver.name}`, 'info');
+    }
+
+    function updateSavedProfiles(){
+      if (allReceivers.length === 0) {
+        D.savedProfiles.innerHTML = '<span class="small muted">Nenhum perfil salvo</span>';
+        D.btnDeleteProfile.disabled = true;
+        return;
+      }
+      
+      D.btnDeleteProfile.disabled = false;
+      D.savedProfiles.innerHTML = '';
+      
+      allReceivers.forEach(r => {
+        const btn = document.createElement('button');
+        btn.className = 'profile-option';
+        if (r.id === currentReceiverId) btn.classList.add('active');
+        btn.textContent = r.name;
+        btn.onclick = () => loadProfile(r.id);
+        D.savedProfiles.appendChild(btn);
+      });
+    }
+
+    function loadProfile(id){
+      const receiver = allReceivers.find(r => r.id === id);
+      if (!receiver) return;
+      
+      currentReceiverId = id;
+      D.cfgKeyType.value = receiver.keyType || 'cpf';
+      D.cfgPixKey.value = receiver.pixKey || '';
+      D.cfgName.value = receiver.name || '';
+      D.cfgCity.value = receiver.city || '';
+      updateSavedProfiles();
+    }
+
+    function updateReceiverStatus(){
+      if (receiverConfig) {
+        D.receiverStatus.textContent = `${escapeHTML(receiverConfig.name)}`;
+        D.receiverStatus.className = 'status status-success';
+      } else {
+        D.receiverStatus.textContent = 'Não configurado';
+        D.receiverStatus.className = 'status status-warn';
+      }
+    }
+
+    function validateConfig(){
+      let valid = true;
+      const keyType = D.cfgKeyType.value;
+      const pixKeyRaw = (D.cfgPixKey.value||'').trim();
+      const name = (D.cfgName.value||'').trim();
+      const city = (D.cfgCity.value||'').trim();
+
+      if (!pixKeyRaw) { 
+        showFieldError(D.cfgPixKeyError, 'Chave PIX é obrigatória.'); 
+        valid = false; 
+      } else {
+        let keyValid = false;
+        switch(keyType){
+          case 'cpf': keyValid = validateCPF(pixKeyRaw); break;
+          case 'cnpj': keyValid = validateCNPJ(pixKeyRaw); break;
+          case 'email': keyValid = validateEmail(pixKeyRaw); break;
+          case 'phone': keyValid = validatePhone(pixKeyRaw); break;
+          case 'random': keyValid = validateUUID(pixKeyRaw); break;
+        }
+        if (!keyValid) { 
+          showFieldError(D.cfgPixKeyError, `${KEY_TYPES[keyType].label} inválida.`); 
+          valid = false; 
+        } else hideFieldError(D.cfgPixKeyError);
+      }
+
+      if (!name || name.length > 25) { 
+        showFieldError(D.cfgNameError, 'Nome obrigatório (até 25 caracteres).'); 
+        valid = false; 
+      } else hideFieldError(D.cfgNameError);
+
+      if (!city || city.length > 15) { 
+        showFieldError(D.cfgCityError, 'Cidade obrigatória (até 15 caracteres).'); 
+        valid = false; 
+      } else hideFieldError(D.cfgCityError);
+
+      return valid;
+    }
+
+    async function saveReceiverConfig(){
+      if (!validateConfig()) { 
+        showToast('Corrija os dados do recebedor.', 'error'); 
+        return; 
+      }
+      
+      const config = {
+        keyType: D.cfgKeyType.value,
+        pixKey: D.cfgPixKey.value.trim(),
+        name: D.cfgName.value.trim(),
+        city: D.cfgCity.value.trim()
+      };
+
+      if (currentReceiverId) {
+        config.id = currentReceiverId;
+      }
+
+      const id = await idbPut(STORE_RECEIVERS, config);
+      if (!currentReceiverId) config.id = id;
+      
+      await loadReceivers();
+      closeConfigPanel();
+      showToast('Perfil salvo com sucesso!', 'success');
+    }
+
+    async function deleteCurrentProfile(){
+      if (!currentReceiverId) {
+        showToast('Nenhum perfil selecionado', 'warn');
+        return;
+      }
+      
+      if (!confirm(`Excluir o perfil "${receiverConfig.name}"?`)) return;
+      
+      await idbDelete(STORE_RECEIVERS, currentReceiverId);
+      currentReceiverId = null;
+      await loadReceivers();
+      showToast('Perfil excluído', 'success');
+    }
+
+    function openConfigPanel(){ 
+      D.configPanel.style.display = 'block';
+      if (receiverConfig && currentReceiverId) {
+        loadProfile(currentReceiverId);
+      } else {
+        D.cfgKeyType.value = 'cpf';
+        D.cfgPixKey.value = '';
+        D.cfgName.value = '';
+        D.cfgCity.value = '';
+        currentReceiverId = null;
+        updateSavedProfiles();
+      }
+    }
+    
+    function closeConfigPanel(){ 
+      D.configPanel.style.display = 'none'; 
+    }
+
+    function formatKeyForPayload(keyType, keyValue){
+      let key = (keyValue||'').trim();
+      if (keyType === 'cpf' || keyType === 'cnpj') key = onlyDigits(key);
+      if (keyType === 'phone') {
+        let digits = onlyDigits(key);
+        if (!digits.startsWith('55')) digits = '55' + digits;
+        key = '+' + digits;
+      }
+      return key;
+    }
+
+    function buildPixPayload({ keyType, pixKey, name, city, amount = 0, description = '', txid = '' }){
+      const pixDomain = 'BR.GOV.BCB.PIX';
+      let payload = '';
+      payload += formatEMVField('00','01');
+      payload += formatEMVField('01', amount > 0 ? '12' : '11');
+      const merchantAccount = formatEMVField('00', pixDomain) + formatEMVField('01', pixKey);
+      payload += formatEMVField('26', merchantAccount);
+      payload += formatEMVField('52','0000');
+      payload += formatEMVField('53','986');
+      if (amount > 0) payload += formatEMVField('54', Number(amount).toFixed(2));
+      payload += formatEMVField('58','BR');
+      payload += formatEMVField('59', name.substring(0,25));
+      payload += formatEMVField('60', city.substring(0,15));
+      let additionalInfo = '';
+      if (description) additionalInfo += formatEMVField('50', description.substring(0,72));
+      additionalInfo += formatEMVField('05', txid);
+      payload += formatEMVField('62', additionalInfo);
+      payload += '6304';
+      const crc = generateCRC16(payload);
+      payload += crc;
+      return payload;
+    }
+
+    function clearQR(){
+      D.qrCanvas.innerHTML = '';
+      D.qrPlaceholder.style.display = 'block';
+      D.shareBox.style.display = 'none';
+      D.btnDownload.disabled = true;
+      D.btnCopy.disabled = true;
+      D.btnShare.disabled = true;
+      if (qrInstance && qrInstance.clear) try{ qrInstance.clear(); }catch(e){}
+      lastQR = null;
+    }
+
+    function validateGeneration(){
+      if (!receiverConfig) { 
+        showToast('Configure o recebedor primeiro', 'warn'); 
+        openConfigPanel(); 
+        return false; 
+      }
+      const amount = getAmountValue();
+      if (amount < 0) { 
+        showFieldError(D.amountError,'Valor não pode ser negativo.'); 
+        return false; 
+      }
+      hideFieldError(D.amountError);
+      return true;
+    }
+
+    async function generateQR(){
+      if (!validateGeneration()) return;
+      
+      const generateBtn = D.btnGenerate; 
+      const originalText = generateBtn.textContent;
+      generateBtn.textContent = '⏳ Gerando...'; 
+      generateBtn.disabled = true;
+      
+      try {
+        clearQR();
+        const amount = getAmountValue();
+        const description = (D.description.value||'').trim();
+        const clientId = D.clientSelect.value || null;
+        const dueDate = D.dueDate.value || null;
+        const txid = genTXID();
+        const keyType = receiverConfig.keyType;
+        const pixKey = formatKeyForPayload(keyType, receiverConfig.pixKey);
+        const name = (receiverConfig.name||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const city = (receiverConfig.city||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const payload = buildPixPayload({ keyType, pixKey, name, city, amount, description, txid });
+
+        D.qrPlaceholder.style.display = 'none';
+        D.qrCanvas.innerHTML = '';
+        qrInstance = new QRCode(D.qrCanvas, { 
+          text: payload, 
+          width:280, 
+          height:280, 
+          correctLevel: QRCode.CorrectLevel.M 
+        });
+
+        D.btnDownload.disabled = false; 
+        D.btnCopy.disabled = false;
+        D.btnShare.disabled = false;
+
+        const record = {
+            payload, txid, pixKey, keyType, name, city, 
+            amount: Number(amount||0), 
+            description,
+            clientId,
+            dueDate: dueDate || null,
+            status: 'pending',
+          createdAt: new Date().toISOString(),
+          receiverId: receiverConfig.id,
+          proofTxid: null,
+          proofNotes: null
+        };
+        
+        const id = await idbPut(STORE_HISTORY, record);
+        record.id = id;
+        lastQR = record;
+        
+        const shareUrl = generateShareLink(payload, amount, description);
+        D.shareLink.textContent = shareUrl;
+        D.shareBox.style.display = 'block';
+        
+        updateCurrentCharge(record);
+        await refreshHistoryTable();
+        await refreshClientSelect();
+        showToast('QR Code gerado com sucesso!', 'success');
+      } catch(e){
+        console.error('generateQR', e);
+        showToast('Erro ao gerar QR Code', 'error');
+      } finally {
+        generateBtn.textContent = originalText; 
+        generateBtn.disabled = false;
+      }
+    }
+
+    function generateShareLink(payload, amount, description){
+      const baseUrl = window.location.origin + window.location.pathname;
+      const params = new URLSearchParams({
+        pix: payload,
+        v: amount || 0,
+        d: description || ''
+      });
+      return `${baseUrl}?${params.toString()}`;
+    }
+
+    function updateCurrentCharge(record){
+      if (!record) {
+        D.currentId.textContent = '-'; 
+        D.currentAmount.textContent = formatBRL(0);
+        D.currentDue.textContent = '-';
+        D.currentStatus.textContent = 'Aguardando'; 
+        D.currentStatus.className = 'status status-warn';
+        return;
+      }
+      
+      D.currentId.textContent = '#' + record.id;
+      D.currentAmount.textContent = formatBRL(record.amount);
+      
+if (record.dueDate) {
+        const [year, month, day] = record.dueDate.split('-');
+        const dueStr = `${day}/${month}/${year}`;
+        const overdue = isOverdue(record.dueDate);
+        D.currentDue.innerHTML = overdue ? `<span class="overdue">${dueStr} (vencido)</span>` : dueStr;
+      } else {
+        D.currentDue.textContent = '-';
+      }
+      
+      let statusText = 'Pendente';
+      let statusClass = 'status-warn';
+      
+      if (record.status === 'received') {
+        statusText = 'Recebido';
+        statusClass = 'status-success';
+      } else if (record.dueDate && isOverdue(record.dueDate)) {
+        statusText = 'Vencido';
+        statusClass = 'status-danger';
+      }
+      
+      D.currentStatus.textContent = statusText;
+      D.currentStatus.className = `status ${statusClass}`;
+    }
+
+    async function fetchHistory(){ 
+      try { 
+        return await idbGetAll(STORE_HISTORY) || []; 
+      } catch(e){ 
+        console.error('fetchHistory', e); 
+        return []; 
+      } 
+    }
+
+    async function fetchClients(){
+      try {
+        return await idbGetAll(STORE_CLIENTS) || [];
+      } catch(e){
+        console.error('fetchClients', e);
+        return [];
+      }
+    }
+
+    function applyHistoryFilters(records){
+      const search = (D.filterSearch.value||'').toLowerCase().trim();
+      const status = D.filterStatus.value;
+      const clientId = D.filterClient.value;
+      
+      return records.filter(record => {
+        if (search) {
+          const text = [record.pixKey||'', record.name||'', record.txid||'', record.description||''].join(' ').toLowerCase();
+          if (!text.includes(search)) return false;
+        }
+        
+        if (status === 'overdue') {
+          if (record.status !== 'pending' || !isOverdue(record.dueDate)) return false;
+        } else if (status !== 'all' && record.status !== status) {
+          return false;
+        }
+        
+        if (clientId !== 'all' && record.clientId != clientId) return false;
+        
+        return true;
+      });
+    }
+
+    async function refreshHistoryTable(){
+      try {
+        const records = await fetchHistory();
+        const clients = await fetchClients();
+        const clientMap = {};
+        clients.forEach(c => clientMap[c.id] = c.name);
+        
+        let filtered = applyHistoryFilters(records);
+        filtered.sort((a,b) => (b.id||0)-(a.id||0));
+
+        LAST_FILTERED = filtered;
+        const total = filtered.length;
+        const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+        if (CURRENT_PAGE > totalPages) CURRENT_PAGE = totalPages;
+        const start = (CURRENT_PAGE-1)*PAGE_SIZE;
+        const pageRecords = filtered.slice(start, start + PAGE_SIZE);
+
+        const pendingCount = filtered.filter(r=>r.status==='pending').length;
+        const receivedCount = filtered.filter(r=>r.status==='received').length;
+        const overdueCount = filtered.filter(r=>r.status==='pending' && isOverdue(r.dueDate)).length;
+        const totalValue = filtered.reduce((s,r)=>s+(Number(r.amount)||0), 0);
+        D.histStats.textContent = `${filtered.length} total • ${pendingCount} pendentes • ${receivedCount} recebidos • ${overdueCount} vencidos • ${formatBRL(totalValue)}`;
+
+        if (pageRecords.length === 0){
+          D.historyBody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px" class="muted">Nenhuma cobrança encontrada</td></tr>`;
+        } else {
+          D.historyBody.innerHTML = pageRecords.map(r => {
+            const clientName = r.clientId ? (clientMap[r.clientId] || 'Cliente desconhecido') : '-';
+            
+            let statusLabel = 'Pendente';
+            let statusClass = 'status-warn';
+            
+            if (r.status === 'received') {
+              statusLabel = 'Recebido';
+              statusClass = 'status-success';
+            } else if (r.dueDate && isOverdue(r.dueDate)) {
+              statusLabel = 'Vencido';
+              statusClass = 'status-danger';
+            }
+            
+            const dueStr = r.dueDate ? (() => {
+              const [year, month, day] = r.dueDate.split('-');
+              return `${day}/${month}/${year}`;
+            })() : '-';
+            
+            return `<tr>
+              <td><strong>#${r.id}</strong></td>
+              <td>${r.clientId ? `<span class="client-badge">${escapeHTML(clientName)}</span>` : '-'}</td>
+              <td><strong>${formatBRL(r.amount)}</strong></td>
+              <td class="small">${dueStr}</td>
+              <td><span class="status ${statusClass}">${statusLabel}</span></td>
+              <td>
+                ${r.status === 'pending' ? `<button class="btn btn-success btn-small" onclick="openProofModal(${r.id})" title="Confirmar pagamento">✓</button>` : ''}
+                <button class="btn btn-ghost btn-small" onclick="previewQR(${r.id})" title="Ver QR">👁</button>
+                <button class="btn btn-ghost btn-small" onclick="deleteRecord(${r.id})" title="Excluir">🗑</button>
+              </td>
+            </tr>`;
+          }).join('');
+        }
+
+        D.pageInfo.textContent = `Página ${CURRENT_PAGE} / ${totalPages}`;
+      } catch(e){ 
+        console.error('refreshHistoryTable', e); 
+        showToast('Erro ao carregar histórico', 'error'); 
+      }
+    }
+
+    async function refreshClientSelect(){
+      const clients = await fetchClients();
+      D.clientSelect.innerHTML = '<option value="">Sem cliente</option>';
+      D.filterClient.innerHTML = '<option value="all">Todos clientes</option>';
+      
+      clients.forEach(c => {
+        const opt1 = document.createElement('option');
+        opt1.value = c.id;
+        opt1.textContent = c.name;
+        D.clientSelect.appendChild(opt1);
+        
+        const opt2 = document.createElement('option');
+        opt2.value = c.id;
+        opt2.textContent = c.name;
+        D.filterClient.appendChild(opt2);
+      });
+    }
+
+    async function refreshClientsTable(){
+      try {
+        const clients = await fetchClients();
+        const records = await fetchHistory();
+        
+        if (clients.length === 0) {
+          D.clientsBody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px" class="muted">Nenhum cliente cadastrado</td></tr>';
+          return;
+        }
+        
+        D.clientsBody.innerHTML = clients.map(c => {
+          const clientCharges = records.filter(r => r.clientId == c.id);
+          const totalAmount = clientCharges.reduce((s,r) => s + Number(r.amount||0), 0);
+          const pendingAmount = clientCharges.filter(r => r.status === 'pending').reduce((s,r) => s + Number(r.amount||0), 0);
+          
+          return `<tr>
+            <td><strong>${escapeHTML(c.name)}</strong></td>
+            <td class="small">${escapeHTML(c.contact||'-')}</td>
+            <td>${clientCharges.length}</td>
+            <td><strong>${formatBRL(totalAmount)}</strong></td>
+            <td>${pendingAmount > 0 ? `<span style="color:var(--warning)">${formatBRL(pendingAmount)}</span>` : '-'}</td>
+            <td>
+              <button class="btn btn-ghost btn-small" onclick="editClient(${c.id})" title="Editar">✏️</button>
+              <button class="btn btn-ghost btn-small" onclick="deleteClient(${c.id})" title="Excluir">🗑</button>
+            </td>
+          </tr>`;
+        }).join('');
+      } catch(e){
+        console.error('refreshClientsTable', e);
+        showToast('Erro ao carregar clientes', 'error');
+      }
+    }
+
+    function openClientModal(clientId = null){
+      editingClientId = clientId;
+      
+      if (clientId) {
+        idbGet(STORE_CLIENTS, clientId).then(client => {
+          if (!client) return;
+          D.clientModalTitle.textContent = 'Editar Cliente';
+          D.clientName.value = client.name || '';
+          D.clientContact.value = client.contact || '';
+          D.clientNotes.value = client.notes || '';
+        });
+      } else {
+        D.clientModalTitle.textContent = 'Novo Cliente';
+        D.clientName.value = '';
+        D.clientContact.value = '';
+        D.clientNotes.value = '';
+      }
+      
+      D.modalClient.style.display = 'block';
+      D.modalOverlay.classList.add('show');
+    }
+
+    async function saveClient(){
+      const name = (D.clientName.value||'').trim();
+      const contact = (D.clientContact.value||'').trim();
+      const notes = (D.clientNotes.value||'').trim();
+      
+      if (!name) {
+        showToast('Nome do cliente é obrigatório', 'error');
+        return;
+      }
+      
+      const client = { name, contact, notes };
+      if (editingClientId) client.id = editingClientId;
+      
+      await idbPut(STORE_CLIENTS, client);
+      await refreshClientsTable();
+      await refreshClientSelect();
+      closeModal('client');
+      showToast(editingClientId ? 'Cliente atualizado' : 'Cliente cadastrado', 'success');
+    }
+
+    window.editClient = function(id){
+      openClientModal(id);
+    };
+
+    window.deleteClient = async function(id){
+      if (!confirm('Excluir este cliente? As cobranças vinculadas não serão excluídas.')) return;
+      try {
+        await idbDelete(STORE_CLIENTS, id);
+        await refreshClientsTable();
+        await refreshClientSelect();
+        showToast('Cliente excluído', 'success');
+      } catch(e){
+        console.error('deleteClient', e);
+        showToast('Erro ao excluir cliente', 'error');
+      }
+    };
+
+    function openProofModal(chargeId){
+      currentProofChargeId = chargeId;
+      D.proofChargeId.textContent = `#${chargeId}`;
+      D.proofTxid.value = '';
+      D.proofNotes.value = '';
+      D.modalProof.style.display = 'block';
+      D.modalOverlay.classList.add('show');
+    }
+
+    async function confirmPayment(){
+      if (!currentProofChargeId) return;
+      
+      try {
+        const record = await idbGet(STORE_HISTORY, currentProofChargeId);
+        if (!record) return;
+        
+        record.status = 'received';
+        record.proofTxid = D.proofTxid.value.trim() || null;
+        record.proofNotes = D.proofNotes.value.trim() || null;
+        record.receivedAt = new Date().toISOString();
+        
+        await idbPut(STORE_HISTORY, record);
+        
+        if (lastQR && lastQR.id === record.id) {
+          lastQR = record;
+          updateCurrentCharge(record);
+        }
+        
+        await refreshHistoryTable();
+        closeModal('proof');
+        showToast('Pagamento confirmado!', 'success');
+      } catch(e){
+        console.error('confirmPayment', e);
+        showToast('Erro ao confirmar pagamento', 'error');
+      }
+    }
+
+    window.previewQR = async function(id){
+      try {
+        const record = await idbGet(STORE_HISTORY, id);
+        if (!record) return;
+        
+        clearQR();
+        D.qrPlaceholder.style.display = 'none';
+        D.qrCanvas.innerHTML = '';
+        qrInstance = new QRCode(D.qrCanvas, { 
+          text: record.payload, 
+          width:280, 
+          height:280, 
+          correctLevel: QRCode.CorrectLevel.M 
+        });
+        
+        D.btnDownload.disabled=false; 
+        D.btnCopy.disabled=false;
+        D.btnShare.disabled=false;
+        
+        const shareUrl = generateShareLink(record.payload, record.amount, record.description);
+        D.shareLink.textContent = shareUrl;
+        D.shareBox.style.display = 'block';
+        
+        lastQR = record;
+        updateCurrentCharge(record);
+        switchTab(D.tabGen, D.viewGen);
+        showToast('QR Code carregado', 'info');
+      } catch(e){ 
+        console.error('previewQR', e); 
+        showToast('Erro ao visualizar QR Code', 'error'); 
+      }
+    };
+
+    window.deleteRecord = async function(id){
+      if (!confirm('Excluir este registro?')) return;
+      try {
+        await idbDelete(STORE_HISTORY, id);
+        if (lastQR && lastQR.id === id) { 
+          lastQR = null; 
+          clearQR(); 
+          updateCurrentCharge(null); 
+        }
+        await refreshHistoryTable();
+        showToast('Registro excluído', 'success');
+      } catch(e){ 
+        console.error('deleteRecord', e); 
+        showToast('Erro ao excluir registro', 'error'); 
+      }
+    };
+
+    function downloadQR(){
+      const canvas = D.qrCanvas.querySelector('canvas');
+      if (!canvas) { 
+        showToast('Gere um QR Code primeiro', 'warn'); 
+        return; 
+      }
+      canvas.toBlob(blob => {
+        const filename = `pix-qr-${lastQR?.id || Date.now()}.png`;
+        saveAs(blob, filename);
+        showToast('QR Code baixado!', 'success');
+      });
+    }
+
+    function copyPayload(){
+      if (!lastQR?.payload) { 
+        showToast('Gere um QR Code primeiro', 'warn'); 
+        return; 
+      }
+      navigator.clipboard.writeText(lastQR.payload)
+        .then(()=> showToast('Código PIX copiado!', 'success'))
+        .catch(()=> showToast('Não foi possível copiar', 'error'));
+    }
+
+    function copyShareLink(){
+      const link = D.shareLink.textContent;
+      if (!link || link === '-') {
+        showToast('Nenhum link disponível', 'warn');
+        return;
+      }
+      navigator.clipboard.writeText(link)
+        .then(()=> showToast('Link copiado!', 'success'))
+        .catch(()=> showToast('Não foi possível copiar', 'error'));
+    }
+
+    async function refreshReports(){
+      try {
+        const period = D.reportPeriod.value;
+        const records = await fetchHistory();
+        const clients = await fetchClients();
+        
+        let filtered = records;
+        const now = new Date();
+        
+        if (period === 'today') {
+          filtered = records.filter(r => {
+            const created = new Date(r.createdAt);
+            return created.toDateString() === now.toDateString();
+          });
+        } else if (period === 'week') {
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          filtered = records.filter(r => new Date(r.createdAt) >= weekAgo);
+        } else if (period === 'month') {
+          const monthAgo = new Date(now.getFullYear(), now.getMonth(), 1);
+          filtered = records.filter(r => new Date(r.createdAt) >= monthAgo);
+        }
+        
+        const received = filtered.filter(r => r.status === 'received');
+        const pending = filtered.filter(r => r.status === 'pending' && !isOverdue(r.dueDate));
+        const overdue = filtered.filter(r => r.status === 'pending' && isOverdue(r.dueDate));
+        
+        const totalReceived = received.reduce((s,r) => s + Number(r.amount||0), 0);
+        const totalPending = pending.reduce((s,r) => s + Number(r.amount||0), 0);
+        const totalOverdue = overdue.reduce((s,r) => s + Number(r.amount||0), 0);
+        const avgTicket = filtered.length > 0 ? (filtered.reduce((s,r) => s + Number(r.amount||0), 0) / filtered.length) : 0;
+        const conversion = filtered.length > 0 ? ((received.length / filtered.length) * 100) : 0;
+        
+        D.statReceived.textContent = formatBRL(totalReceived);
+        D.statPending.textContent = formatBRL(totalPending);
+        D.statOverdue.textContent = formatBRL(totalOverdue);
+        D.statAvg.textContent = formatBRL(avgTicket);
+        D.statCount.textContent = filtered.length;
+        D.statConversion.textContent = conversion.toFixed(1) + '%';
+        
+        const clientTotals = {};
+        records.forEach(r => {
+          if (r.clientId && r.status === 'received') {
+            clientTotals[r.clientId] = (clientTotals[r.clientId] || 0) + Number(r.amount||0);
+          }
+        });
+        
+        const topClients = Object.entries(clientTotals)
+          .sort((a,b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([id, total]) => {
+            const client = clients.find(c => c.id == id);
+            return { name: client?.name || 'Desconhecido', total };
+          });
+        
+        if (topClients.length === 0) {
+          D.topClients.innerHTML = '<div class="muted">Nenhum cliente com pagamentos</div>';
+        } else {
+          D.topClients.innerHTML = topClients.map((c, i) => 
+            `<div style="padding:8px 0; border-bottom:1px solid var(--border)">
+              <strong>${i+1}. ${escapeHTML(c.name)}</strong>
+              <span style="float:right; color:var(--success); font-weight:700">${formatBRL(c.total)}</span>
+            </div>`
+          ).join('');
+        }
+        
+      } catch(e){
+        console.error('refreshReports', e);
+        showToast('Erro ao gerar relatórios', 'error');
+      }
+    }
+
+    async function exportJSON(){
+      try {
+        const records = await fetchHistory();
+        if (records.length === 0){ 
+          showToast('Nenhum dado para exportar', 'warn'); 
+          return; 
+        }
+        const blob = new Blob([JSON.stringify(records, null, 2)], { type:'application/json' });
+        const filename = `pix-history-${new Date().toISOString().slice(0,10)}.json`;
+        saveAs(blob, filename);
+        updateLastBackup();
+        showToast('JSON exportado!', 'success');
+      } catch(e){ 
+        console.error('exportJSON', e); 
+        showToast('Erro ao exportar JSON', 'error'); 
+      }
+    }
+
+    async function exportExcel(){
+      try {
+        const records = await fetchHistory();
+        const clients = await fetchClients();
+        const clientMap = {};
+        clients.forEach(c => clientMap[c.id] = c.name);
+        
+        if (records.length === 0){ 
+          showToast('Nenhum dado para exportar', 'warn'); 
+          return; 
+        }
+        const sheetData = records.map(r=>({
+          ID: r.id, 
+          Cliente: r.clientId ? (clientMap[r.clientId] || '-') : '-',
+          Nome: r.name, 
+          Chave: r.pixKey, 
+          Valor: r.amount, 
+          Status: r.status, 
+          Vencimento: r.dueDate || '-',
+          TXID: r.txid, 
+          Descrição: r.description, 
+          Criado: r.createdAt
+        }));
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(sheetData);
+        XLSX.utils.book_append_sheet(wb, ws, 'Histórico PIX');
+        const wbout = XLSX.write(wb, { bookType:'xlsx', type:'array' });
+        const filename = `pix-history-${new Date().toISOString().slice(0,10)}.xlsx`;
+        saveAs(new Blob([wbout], { type:'application/octet-stream' }), filename);
+        updateLastBackup();
+        showToast('Excel exportado!', 'success');
+      } catch(e){ 
+        console.error('exportExcel', e); 
+        showToast('Erro ao exportar Excel', 'error'); 
+      }
+    }
+
+    async function exportPDFTable(records){
+      try {
+        if (!records || records.length === 0) { 
+          records = await fetchHistory();
+          if (records.length === 0) {
+            showToast('Nenhum registro para exportar', 'warn'); 
+            return;
+          }
+        }
+        
+        const clients = await fetchClients();
+        const clientMap = {};
+        clients.forEach(c => clientMap[c.id] = c.name);
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation:'portrait', unit:'pt', format:'a4' });
+        
+        doc.setFontSize(16); 
+        doc.text('Relatório PIX Peppe - Pro - Histórico de Cobranças', 40, 40);
+        doc.setFontSize(10); 
+        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 60);
+        
+        const head = [['ID','Cliente','Valor','Status','Vencimento']];
+        const body = records.map(r => [
+          String(r.id),
+          r.clientId ? (clientMap[r.clientId] || '-') : '-',
+          formatBRL(r.amount),
+          r.status === 'received' ? 'Recebido' : (isOverdue(r.dueDate) ? 'Vencido' : 'Pendente'),
+          r.dueDate ? new Date(r.dueDate).toLocaleDateString('pt-BR') : '-'
+        ]);
+        
+        const totalValue = records.reduce((s,r)=>s+(Number(r.amount)||0),0);
+        const received = records.filter(r => r.status === 'received').length;
+        
+        doc.autoTable({
+          startY: 80,
+          head: head,
+          body: body,
+          styles: { fontSize: 9, cellPadding: 6 },
+          headStyles: { fillColor: [107,92,231], textColor: 255 },
+        });
+        
+        const finalY = doc.lastAutoTable.finalY + 20;
+        doc.setFontSize(11);
+        doc.text(`Total: ${records.length} cobranças • ${received} recebidos • Valor total: ${formatBRL(totalValue)}`, 40, finalY);
+        
+        const filename = `pix-relatorio-${new Date().toISOString().slice(0,10)}.pdf`;
+        doc.save(filename);
+        updateLastBackup();
+        showToast('PDF exportado!', 'success');
+      } catch(e){ 
+        console.error('exportPDFTable', e); 
+        showToast('Erro ao exportar PDF', 'error'); 
+      }
+    }
+
+    async function importJSON(){
+      const file = D.fileImport.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!Array.isArray(data)) { 
+          showToast('JSON inválido', 'error'); 
+          return; 
+        }
+        
+        const replace = confirm('Substituir dados atuais?\n\nOK = Substituir tudo\nCancelar = Manter e adicionar novos');
+        if (replace) await idbClear(STORE_HISTORY);
+        
+        let imported = 0;
+        for (const item of data){
+          const record = {
+            payload: item.payload || '',
+            txid: item.txid || genTXID(),
+            pixKey: item.pixKey || '',
+            keyType: item.keyType || 'cpf',
+            name: item.name || '',
+            city: item.city || '',
+            amount: Number(item.amount || 0),
+            description: item.description || '',
+            clientId: item.clientId || null,
+            dueDate: item.dueDate || null,
+            status: item.status || 'pending',
+            createdAt: item.createdAt || new Date().toISOString(),
+            receiverId: item.receiverId || null,
+            proofTxid: item.proofTxid || null,
+            proofNotes: item.proofNotes || null
+          };
+          await idbPut(STORE_HISTORY, record);
+          imported++;
+        }
+        showToast(`${imported} registros importados!`, 'success');
+        await refreshHistoryTable();
+      } catch(e){ 
+        console.error('importJSON', e); 
+        showToast('Erro ao importar JSON', 'error'); 
+      }
+      D.fileImport.value = '';
+    }
+
+    function updateLastBackup(){
+      const now = new Date().toLocaleString('pt-BR');
+      localStorage.setItem('last_backup', now);
+      D.lastBackup.textContent = now;
+    }
+
+    function checkBackup(){
+      const last = localStorage.getItem('last_backup');
+      if (last) {
+        D.lastBackup.textContent = last;
+        const lastDate = new Date(last);
+        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        if (lastDate < weekAgo) {
+          showToast('Recomendado: Faça um backup dos seus dados', 'warn');
+        }
+      } else {
+        D.lastBackup.textContent = 'Nunca';
+      }
+    }
+
+    function initTheme(){ 
+      const saved = localStorage.getItem('pixmanager_theme') || 'light'; 
+      applyTheme(saved); 
+    }
+    
+    function applyTheme(t){ 
+      document.body.setAttribute('data-theme', t); 
+      D.btnTheme.textContent = t === 'dark' ? '☀️' : '🌙'; 
+      localStorage.setItem('pixmanager_theme', t); 
+    }
+    
+    function toggleTheme(){ 
+      const current = document.body.getAttribute('data-theme');
+      applyTheme(current === 'dark' ? 'light' : 'dark'); 
+    }
+
+    function closeModal(type){
+      if (type === 'client') {
+        D.modalClient.style.display = 'none';
+      } else if (type === 'proof') {
+        D.modalProof.style.display = 'none';
+      } else if (type === 'export') {
+        D.modalExportImport.style.display = 'none';
+      }
+      D.modalOverlay.classList.remove('show');
+    }
+
+    function setupEventListeners(){
+      D.tabGen.addEventListener('click', ()=> switchTab(D.tabGen, D.viewGen));
+      D.tabHist.addEventListener('click', ()=> { 
+        switchTab(D.tabHist, D.viewHist); 
+        refreshHistoryTable(); 
+      });
+      D.tabClients.addEventListener('click', ()=> {
+        switchTab(D.tabClients, D.viewClients);
+        refreshClientsTable();
+      });
+      D.tabReports.addEventListener('click', ()=> {
+        switchTab(D.tabReports, D.viewReports);
+        refreshReports();
+      });
+
+      D.btnGenerate.addEventListener('click', generateQR);
+      D.btnClear.addEventListener('click', ()=> {
+        D.amount.value='R$ 0,00'; 
+        D.description.value=''; 
+        D.clientSelect.value = '';
+        D.dueDate.value = '';
+        hideFieldError(D.amountError); 
+        clearQR(); 
+        updateCurrentCharge(null);
+        showToast('Campos limpos', 'info');
+      });
+
+      D.btnDownload.addEventListener('click', downloadQR);
+      D.btnCopy.addEventListener('click', copyPayload);
+      D.btnShare.addEventListener('click', ()=> {
+        D.shareBox.style.display = D.shareBox.style.display === 'none' ? 'block' : 'none';
+      });
+      D.btnCopyLink.addEventListener('click', copyShareLink);
+
+      D.btnReceiverConfig.addEventListener('click', openConfigPanel);
+      D.btnSaveConfig.addEventListener('click', saveReceiverConfig);
+      D.btnCancelConfig.addEventListener('click', closeConfigPanel);
+      D.btnDeleteProfile.addEventListener('click', deleteCurrentProfile);
+
+      D.btnAddClient.addEventListener('click', ()=> openClientModal());
+      D.btnSaveClient.addEventListener('click', saveClient);
+      D.btnCancelClient.addEventListener('click', ()=> closeModal('client'));
+
+      D.btnConfirmPayment.addEventListener('click', confirmPayment);
+      D.btnCancelProof.addEventListener('click', ()=> closeModal('proof'));
+
+      D.btnRefreshReports.addEventListener('click', refreshReports);
+      D.reportPeriod.addEventListener('change', refreshReports);
+
+      D.btnResetFilter.addEventListener('click', ()=> { 
+        D.filterSearch.value=''; 
+        D.filterStatus.value='all';
+        D.filterClient.value='all';
+        CURRENT_PAGE=1; 
+        refreshHistoryTable(); 
+      });
+
+      let searchTimeout;
+      D.filterSearch.addEventListener('input', ()=> { 
+        clearTimeout(searchTimeout); 
+        searchTimeout = setTimeout(()=>{ 
+          CURRENT_PAGE=1; 
+          refreshHistoryTable(); 
+        }, 300); 
+      });
+
+      D.filterStatus.addEventListener('change', ()=> {
+        CURRENT_PAGE=1;
+        refreshHistoryTable();
+      });
+
+      D.filterClient.addEventListener('change', ()=> {
+        CURRENT_PAGE=1;
+        refreshHistoryTable();
+      });
+
+      D.btnClearHistory.addEventListener('click', async ()=> {
+        if (!confirm('Tem certeza que deseja limpar todo o histórico?\n\nEsta ação não pode ser desfeita.')) return;
+        try { 
+          await idbClear(STORE_HISTORY); 
+          await refreshHistoryTable(); 
+          clearQR();
+          updateCurrentCharge(null);
+          showToast('Histórico limpo', 'success'); 
+        } catch(e){ 
+          showToast('Erro ao limpar histórico', 'error'); 
+        }
+      });
+
+      D.btnTheme.addEventListener('click', toggleTheme);
+
+      D.btnBackup.addEventListener('click', ()=> {
+        D.modalExportImport.style.display = 'block';
+        D.modalOverlay.classList.add('show');
+      });
+
+      D.btnExportImport.addEventListener('click', ()=> { 
+        D.modalExportImport.style.display = 'block'; 
+        D.modalOverlay.classList.add('show');
+      });
+      
+      D.modalClose.addEventListener('click', ()=> closeModal('export'));
+
+      D.modalOverlay.addEventListener('click', ()=> {
+        closeModal('client');
+        closeModal('proof');
+        closeModal('export');
+      });
+
+      D.expJson.addEventListener('click', exportJSON);
+      D.expXlsx.addEventListener('click', exportExcel);
+      D.expPdfModal.addEventListener('click', async ()=> { 
+        const rec = await fetchHistory(); 
+        exportPDFTable(rec); 
+      });
+      D.impJson.addEventListener('click', ()=> D.fileImport.click());
+      D.fileImport.addEventListener('change', importJSON);
+      D.btnCreateBackup.addEventListener('click', ()=> {
+        exportJSON();
+      });
+
+      D.prevPage.addEventListener('click', ()=> { 
+        if (CURRENT_PAGE>1) { 
+          CURRENT_PAGE--; 
+          refreshHistoryTable(); 
+        } 
+      });
+      
+      D.nextPage.addEventListener('click', ()=> { 
+        const totalPages = Math.max(1, Math.ceil(LAST_FILTERED.length / PAGE_SIZE)); 
+        if (CURRENT_PAGE < totalPages) { 
+          CURRENT_PAGE++; 
+          refreshHistoryTable(); 
+        } 
+      });
+
+      D.btnExportPDFTable.addEventListener('click', async ()=> { 
+        const all = LAST_FILTERED.length ? LAST_FILTERED : await fetchHistory(); 
+        exportPDFTable(all); 
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (D.configPanel.style.display === 'block') {
+            closeConfigPanel();
+          }
+          closeModal('client');
+          closeModal('proof');
+          closeModal('export');
+        }
+      });
+
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('pix')) {
+        const payload = urlParams.get('pix');
+        const amount = urlParams.get('v') || 0;
+        const description = urlParams.get('d') || '';
+        
+        setTimeout(()=> {
+          clearQR();
+          D.qrPlaceholder.style.display = 'none';
+          D.qrCanvas.innerHTML = '';
+          qrInstance = new QRCode(D.qrCanvas, { 
+            text: payload, 
+            width:280, 
+            height:280, 
+            correctLevel: QRCode.CorrectLevel.M 
+          });
+          D.btnDownload.disabled = false;
+          D.btnCopy.disabled = false;
+          D.amount.value = formatBRL(amount);
+          D.description.value = description;
+          lastQR = { payload, amount, description };
+          showToast('QR Code carregado do link compartilhado', 'info');
+        }, 500);
+      }
+    }
+
+    function switchTab(tabEl, viewEl){
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      tabEl.classList.add('active');
+      document.querySelectorAll('[id^="view-"]').forEach(v=>v.style.display='none');
+      viewEl.style.display='block';
+    }
+
+    async function initializeApp(){
+      try {
+        setupKeySelects(); 
+        setupInputMasks(); 
+        setupAmountFormatting();
+        setupEventListeners(); 
+        initTheme();
+        await openDB(); 
+        await loadReceivers();
+        await refreshClientSelect();
+        clearQR(); 
+        updateCurrentCharge(null);
+        await refreshHistoryTable();
+        checkBackup();
+
+        if (!localStorage.getItem('pixmanager_welcomed')) { 
+          setTimeout(()=> { 
+            if (!receiverConfig) {
+              showToast('Configure o recebedor para começar', 'info');
+              setTimeout(openConfigPanel, 1000);
+            }
+            localStorage.setItem('pixmanager_welcomed','1'); 
+          }, 800); 
+        }
+
+      } catch(e){ 
+        console.error('initializeApp', e); 
+        showToast('Erro ao inicializar a aplicação', 'error'); 
+      }
+    }
+
+    window.openProofModal = openProofModal;
+    initializeApp();
+  </script>
+</body>
+</html>
